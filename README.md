@@ -1,73 +1,173 @@
-# Welcome to your Lovable project
+<div align="center">
+	<h1>🌸 PetalFlow Showcase</h1>
+	<p><strong>A polished floral e‑commerce style demo built with React, TypeScript, Vite, Tailwind & shadcn-ui.</strong></p>
+	<p>Animated hero • Mega menu • Search • Reviews • Custom bouquet builder • Environment‑driven branding</p>
+</div>
 
-## Project info
+---
 
-**URL**: https://lovable.dev/projects/e43cf008-a0e7-430a-bc97-783e8a79f5c3
+## Table of Contents
 
-## How can I edit this code?
+1. Overview
+2. Features
+3. Tech Stack
+4. Quick Start
+5. Environment Variables
+6. Project Structure
+7. State Management
+8. Animations
+9. Scripts
+10. Contributing
+11. Future Ideas
+12. License / Attribution
 
-There are several ways of editing your application.
+---
 
-**Use Lovable**
+## 1. Overview
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/e43cf008-a0e7-430a-bc97-783e8a79f5c3) and start prompting.
+PetalFlow Showcase is a front‑end reference implementation for a premium flower shop experience. It focuses on refined motion design, modular UI primitives, SEO‑conscious structure, and configurable branding via environment variables.
 
-Changes made via Lovable will be committed automatically to this repo.
+## 2. Features
 
-**Use your preferred IDE**
+- ✨ Animated parallax Hero with configurable background & tagline
+- 🧭 Mega menu navigation (Shop / Info) + keyboard shortcuts ("/" to focus search)
+- 🔍 Unified search across flowers & bouquets (title, slug, description)
+- 🏷️ Occasions taxonomy filtering page
+- 💐 Custom Bouquet builder (choose stems & counts)
+- ⭐ Product reviews with localStorage persistence & aggregate rating
+- 🧵 Structured data (Product + Breadcrumb JSON-LD)
+- 🧭 Centralized breadcrumbs from route metadata
+- 💸 Feature flag to hide/show prices (`VITE_SHOW_PRICES`)
+- 🌀 Global animated loading screen + performance timing slice
+- 🌸 Ambient falling sakura petals layer
+- 🌱 Environment-driven branding (name, tagline, hero image, contacts)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 3. Tech Stack
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+| Aspect             | Tech                             |
+| ------------------ | -------------------------------- |
+| Build Tool         | Vite                             |
+| Framework          | React 18 + TypeScript            |
+| State              | Redux Toolkit                    |
+| UI Primitives      | shadcn-ui (Radix) + Tailwind CSS |
+| Animations         | Framer Motion                    |
+| Carousel           | Embla                            |
+| Forms / Validation | React Hook Form + Zod (planned)  |
 
-Follow these steps:
+## 4. Quick Start
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Clone and run with Bun (preferred) or npm.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+```bash
+git clone <REPO_URL>
+cd petal-flow-showcase
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Copy environment template
+cp .env.example .env
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# Install deps (auto-detects Bun via bun.lockb)
+bun install  # or: npm install
+
+# Start dev server
+bun run dev  # or: npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Visit: http://localhost:5173
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 5. Environment Variables
 
-**Use GitHub Codespaces**
+All branding & contact data is controlled via Vite env vars. Edit `.env` (restart dev server after changes):
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+| Variable             | Purpose                  | Example                     |
+| -------------------- | ------------------------ | --------------------------- |
+| VITE_SHOW_PRICES     | Toggle price visibility  | true                        |
+| VITE_SITE_NAME       | Brand name               | PetalFlow                   |
+| VITE_SITE_TAGLINE    | Short tagline            | Crafting Digital Beauty     |
+| VITE_BRAND_LOGO      | Logo path/URL (optional) | /logo.svg                   |
+| VITE_HERO_IMAGE      | Override hero bg image   | /hero.jpg                   |
+| VITE_CONTACT_EMAIL   | Contact email            | hello@example.com           |
+| VITE_CONTACT_PHONE   | Phone                    | +1 (555) 123-4567           |
+| VITE_CONTACT_ADDRESS | Address                  | 123 Blossom Ave             |
+| VITE_CONTACT_GITHUB  | GitHub/org link          | https://github.com/your-org |
 
-## What technologies are used for this project?
+See `.env.example` for defaults.
 
-This project is built with:
+## 6. Project Structure (Key Paths)
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```
+src/
+	components/         # Reusable UI & feature components
+	pages/              # Route-level components
+	store/              # Redux slices & store setup
+	lib/branding.ts     # Env-based branding helpers
+	lib/routeMeta.ts    # Route metadata for breadcrumbs / JSON-LD
+	assets/             # Static images
+```
 
-## How can I deploy this project?
+## 7. State Management
 
-Simply open [Lovable](https://lovable.dev/projects/e43cf008-a0e7-430a-bc97-783e8a79f5c3) and click on Share -> Publish.
+Redux Toolkit slices:
 
-## Can I connect a custom domain to my Lovable project?
+- flowersSlice / bouquetsSlice: catalog data
+- customBouquetSlice: mutable custom design
+- reviewsSlice: localStorage-persisted user reviews
+- timerSlice: performance & loader timing metrics
 
-Yes, you can!
+## 8. Animations
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Framer Motion powers:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- Page transitions (`PageTransition`)
+- Hero entrance & parallax
+- Loading screen progress & transformation
+- Mega menu panels & hover micro-interactions
+
+Follow the variants pattern for consistency and easier reduced-motion adaptation (future enhancement).
+
+## 9. Scripts
+
+| Script    | Description                         |
+| --------- | ----------------------------------- |
+| dev       | Start dev server                    |
+| build     | Production build                    |
+| build:dev | Development-mode build (unminified) |
+| lint      | Run ESLint                          |
+
+Type checking: `npx tsc --noEmit` (CI runs this automatically).
+
+## 10. Contributing
+
+We use standard GitHub flow:
+
+1. Fork / branch from `main`
+2. Create descriptive branch name (e.g. `feat/search-highlighting`)
+3. Commit with clear messages (Conventional style encouraged)
+4. Open PR using the provided template
+5. Ensure CI passes (lint, type check, build)
+
+Issue templates provided for bugs & feature requests under `.github/ISSUE_TEMPLATE`.
+
+### Code Quality
+
+- Keep components focused; extract shared logic to `lib/` or hooks
+- Prefer TypeScript strictness; add types near usage if small
+- Avoid premature abstraction—wait for a second usage
+
+## 11. Future Ideas (Backlog)
+
+- Server-backed products & review API
+- Fuzzy search (e.g. fuse.js) with highlight
+- Theming + dark mode refinement
+- Accessibility audit & reduced motion support
+- Image optimization / responsive sources
+- Persist custom bouquet designs
+
+## 12. License / Attribution
+
+No explicit license declared yet. Consider adding `MIT` or a custom license if you intend public reuse.
+
+---
+
+Maintained by **@AyoubBourhfella**. Contributions & suggestions welcome.
+
+Enjoy the blooms! 🌷
