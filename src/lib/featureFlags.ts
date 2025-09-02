@@ -1,4 +1,5 @@
-// Centralized feature flags pulling from Vite env vars
+// Centralized feature flags with override support
 // Usage: import { showPrices } from '@/lib/featureFlags'
+import { SHOW_PRICES } from './branding';
 
-export const showPrices: boolean = (import.meta.env.VITE_SHOW_PRICES ?? 'true') !== 'false';
+export const showPrices: boolean = SHOW_PRICES;

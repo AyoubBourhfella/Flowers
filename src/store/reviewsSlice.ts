@@ -8,6 +8,8 @@ export interface Review {
   rating: number; // 1-5
   comment: string;
   createdAt: string; // ISO
+  status: 'pending' | 'approved' | 'rejected';
+  images?: string[]; // data URLs
 }
 
 interface ReviewsState {
@@ -35,11 +37,12 @@ const reviewsSlice = createSlice({
   name: 'reviews',
   initialState,
   reducers: {
-    addReview: (state, action: PayloadAction<Omit<Review, 'id' | 'createdAt'>>) => {
+    addReview: (state, action: PayloadAction<Omit<Review, 'id' | 'createdAt' | 'status'>>) => {
       const review: Review = {
         ...action.payload,
         id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
+        status: 'pending',
       };
       state.items.unshift(review);
       try {
@@ -48,12 +51,38 @@ const reviewsSlice = createSlice({
         // ignore persistence errors (quota, privacy mode)
       }
     },
+    approveReview: (state, action: PayloadAction<string>) => {
+      const r = state.items.find((i) => i.id === action.payload);
+      if (r) r.status = 'approved';
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items.slice(0, 500)));
+      } catch {
+        // ignore
+      }
+    },
+    rejectReview: (state, action: PayloadAction<string>) => {
+      const r = state.items.find((i) => i.id === action.payload);
+      if (r) r.status = 'rejected';
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items.slice(0, 500)));
+      } catch {
+        // ignore
+      }
+    },
+    deleteReview: (state, action: PayloadAction<string>) => {
+      state.items = state.items.filter((r) => r.id !== action.payload);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items.slice(0, 500)));
+      } catch {
+        // ignore
+      }
+    },
   },
 });
 
-export const { addReview } = reviewsSlice.actions;
+export const { addReview, approveReview, rejectReview, deleteReview } = reviewsSlice.actions;
 export const selectReviewsForProduct = (slug: string) => (state: RootState) =>
-  state.reviews.items.filter((r) => r.productSlug === slug);
+  state.reviews.items.filter((r) => r.productSlug === slug && r.status === 'approved');
 export const selectAggregateForProduct = (slug: string) => (state: RootState) => {
   const list = state.reviews.items.filter((r) => r.productSlug === slug);
   if (!list.length) return { count: 0, average: 0 };

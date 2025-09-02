@@ -4,6 +4,8 @@ import flowersReducer from './flowersSlice';
 import bouquetsReducer from './bouquetsSlice';
 import customBouquetReducer from './customBouquetSlice';
 import reviewsReducer from './reviewsSlice';
+import catalogMetaReducer from './catalogMetaSlice';
+import uiFlagsReducer from './uiFlagsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +14,8 @@ export const store = configureStore({
     bouquets: bouquetsReducer,
     customBouquet: customBouquetReducer,
     reviews: reviewsReducer,
+    catalogMeta: catalogMetaReducer,
+    uiFlags: uiFlagsReducer,
   },
 });
 

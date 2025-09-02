@@ -8,6 +8,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { useMemo, Fragment } from 'react';
+import { useAppSelector } from '@/hooks/useAppSelector';
 import { ROUTES, routeIndex } from '@/lib/routeMeta';
 
 export interface RouteMeta {
@@ -45,11 +46,22 @@ function buildTrail(finalMeta: RouteMeta | null): RouteMeta[] {
 
 export const Breadcrumbs = ({ currentLabel }: { currentLabel?: string }) => {
   const location = useLocation();
+  const flowerItems = useAppSelector((s) => s.flowers.items);
+  const bouquetItems = useAppSelector((s) => s.bouquets.items);
+
   const trail = useMemo(() => {
     const match = resolveMatch(location.pathname);
-    const baseTrail = buildTrail(match);
-    return baseTrail;
-  }, [location.pathname]);
+    if (match && match.path === '/product/:slug') {
+      const slug = location.pathname.split('/').pop() || '';
+      const isFlower = flowerItems.some((f) => f.slug === slug);
+      const parentPath = isFlower ? '/flowers' : '/bouquets';
+      const home = routeIndex.get('/')!;
+      const parent = routeIndex.get(parentPath)!;
+      const productMeta: RouteMeta = { ...match, parent: parentPath };
+      return [home, parent, productMeta];
+    }
+    return buildTrail(match);
+  }, [location.pathname, flowerItems]);
 
   if (!trail.length) return null;
 

@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import roseBouquet from '@/assets/rose-bouquet.jpg';
 import lilyArrangement from '@/assets/lily-arrangement.jpg';
@@ -19,14 +19,39 @@ export interface FlowerItem {
   reviews: number;
   badge?: string;
   category: string; // e.g., Rose, Lily, Seasonal, Luxury
+  tags?: string[];
 }
 
 interface FlowersState {
   items: FlowerItem[];
 }
 
+const LS_KEY = 'pf_flowers_v1';
+
+function loadStored(): FlowerItem[] | null {
+  try {
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(LS_KEY) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as FlowerItem[];
+    if (!Array.isArray(parsed)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function persist(items: FlowerItem[]) {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(LS_KEY, JSON.stringify(items.slice(0, 500)));
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 const initialState: FlowersState = {
-  items: [
+  items: loadStored() || [
     {
       id: 'rose-bouquet',
       slug: 'premium-rose-bouquet',
@@ -40,6 +65,7 @@ const initialState: FlowersState = {
       reviews: 247,
       badge: 'Bestseller',
       category: 'Roses',
+      tags: ['bestseller'],
     },
     {
       id: 'white-lily-arrangement',
@@ -52,6 +78,7 @@ const initialState: FlowersState = {
       rating: 4.8,
       reviews: 163,
       category: 'Lilies',
+      tags: [],
     },
     {
       id: 'sunflower-collection',
@@ -63,6 +90,7 @@ const initialState: FlowersState = {
       rating: 4.7,
       reviews: 89,
       category: 'Seasonal',
+      tags: [],
     },
     {
       id: 'pastel-tulip-mix',
@@ -76,6 +104,7 @@ const initialState: FlowersState = {
       reviews: 134,
       badge: 'Limited',
       category: 'Tulips',
+      tags: ['limited'],
     },
     {
       id: 'lavender-bundle',
@@ -87,6 +116,7 @@ const initialState: FlowersState = {
       rating: 4.6,
       reviews: 78,
       category: 'Herbal',
+      tags: [],
     },
     {
       id: 'orchid-arrangement',
@@ -99,6 +129,7 @@ const initialState: FlowersState = {
       reviews: 92,
       badge: 'Premium',
       category: 'Orchids',
+      tags: ['premium'],
     },
   ],
 };
@@ -106,8 +137,24 @@ const initialState: FlowersState = {
 const flowersSlice = createSlice({
   name: 'flowers',
   initialState,
-  reducers: {},
+  reducers: {
+    addFlower(state, action: PayloadAction<FlowerItem>) {
+      state.items.unshift(action.payload);
+      persist(state.items);
+    },
+    updateFlower(state, action: PayloadAction<FlowerItem>) {
+      const i = state.items.findIndex((f) => f.id === action.payload.id);
+      if (i !== -1) state.items[i] = action.payload;
+      persist(state.items);
+    },
+    deleteFlower(state, action: PayloadAction<{ id: string }>) {
+      state.items = state.items.filter((f) => f.id !== action.payload.id);
+      persist(state.items);
+    },
+  },
 });
+
+export const { addFlower, updateFlower, deleteFlower } = flowersSlice.actions;
 
 export default flowersSlice.reducer;
 export type FlowersStateType = FlowersState;

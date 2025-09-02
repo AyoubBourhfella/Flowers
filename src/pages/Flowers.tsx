@@ -17,6 +17,7 @@ import { Slider } from '@/components/ui/slider';
 import { showPrices } from '@/lib/featureFlags';
 import { Input } from '@/components/ui/input';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
+import { trackEvent } from '@/lib/analytics';
 
 const Flowers = () => {
   const items = useAppSelector((s) => s.flowers.items);
@@ -36,15 +37,13 @@ const Flowers = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const catParam = params.get('cat');
-    if (catParam) {
-      const match = categories.find(
-        (c) => c.toLowerCase() === decodeURIComponent(catParam).toLowerCase()
-      );
-      if (match && match !== category) {
-        setCategory(match);
-      }
-    }
-  }, [location.search, categories, category]);
+    if (!catParam) return; // no category param -> leave current state
+    const match = categories.find(
+      (c) => c.toLowerCase() === decodeURIComponent(catParam).toLowerCase()
+    );
+    if (match) setCategory((prev) => (prev === 'all' ? match : prev));
+    // Intentionally exclude `category` from deps so manual resets to 'all' aren't overridden.
+  }, [location.search, categories]);
 
   // Update URL when category changes (keep other filters local only)
   useEffect(() => {
@@ -59,6 +58,7 @@ const Flowers = () => {
     if (target !== location.search) {
       navigate({ pathname: location.pathname, search: target }, { replace: true });
     }
+    if (category !== 'all') trackEvent('filter_category', { category });
   }, [category, location.pathname, location.search, navigate]);
 
   const filtered = useMemo(() => {
@@ -203,7 +203,12 @@ const Flowers = () => {
                 <label className="text-xs uppercase tracking-wide font-medium text-muted-foreground">
                   Category
                 </label>
-                <Select value={category} onValueChange={setCategory}>
+                <Select
+                  value={category}
+                  onValueChange={(v) => {
+                    setCategory(v);
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
@@ -227,7 +232,10 @@ const Flowers = () => {
                     min={0}
                     max={200}
                     step={1}
-                    onValueChange={(v) => setPriceRange([0, v[0] || 0])}
+                    onValueChange={(v) => {
+                      setPriceRange([0, v[0] || 0]);
+                      trackEvent('filter_price_max', { max: v[0] });
+                    }}
                     className="mt-4"
                   />
                 </div>
@@ -238,7 +246,13 @@ const Flowers = () => {
                 </label>
                 <Input
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    if (e.target.value.length === 0) trackEvent('filter_search_clear');
+                  }}
+                  onBlur={() => {
+                    if (search) trackEvent('filter_search_apply', { q: search });
+                  }}
                   placeholder="Search..."
                 />
               </div>
@@ -246,7 +260,13 @@ const Flowers = () => {
                 <label className="text-xs uppercase tracking-wide font-medium text-muted-foreground">
                   Sort
                 </label>
-                <Select value={sort} onValueChange={setSort}>
+                <Select
+                  value={sort}
+                  onValueChange={(v) => {
+                    setSort(v);
+                    trackEvent('filter_sort', { sort: v });
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Sort" />
                   </SelectTrigger>

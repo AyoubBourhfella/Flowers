@@ -4,6 +4,7 @@ import { useAppSelector } from '@/hooks/useAppSelector';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { Search as SearchIcon } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
+import { trackEvent } from '@/lib/analytics';
 
 function useQuery() {
   const { search } = useLocation();
@@ -35,7 +36,10 @@ const SearchPage = () => {
         onSubmit={(e) => {
           e.preventDefault();
           const val = inputRef.current?.value.trim();
-          if (val) window.location.replace(`/search?q=${encodeURIComponent(val)}`);
+          if (val) {
+            trackEvent('search_submit', { q: val, results: results.length });
+            window.location.replace(`/search?q=${encodeURIComponent(val)}`);
+          }
         }}
         className="relative max-w-md mb-8"
         role="search"

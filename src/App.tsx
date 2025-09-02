@@ -18,16 +18,34 @@ import Delivery from './pages/Delivery';
 import CareGuide from './pages/CareGuide';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import AdminToggle from '@/components/AdminToggle';
 import PageTransition from '@/components/PageTransition';
 import SakuraPetals from './components/SakuraPetals';
 import Occasions from './pages/Occasions';
 import CustomBouquet from './pages/CustomBouquet';
 import AppLoader from '@/components/AppLoader';
+import { ENABLE_ADMIN } from '@/lib/branding';
+import AdminLayout from '@/admin/AdminLayout';
+import Dashboard from '@/admin/Dashboard';
+import FlowersList from '@/admin/FlowersList';
+import BouquetsList from '@/admin/BouquetsList';
+import BrandingSettings from '@/admin/BrandingSettings';
+import FeatureFlagsSettings from '@/admin/FeatureFlagsSettings';
+import CatalogMeta from '@/admin/CatalogMeta';
+import CookiePolicy from '@/pages/CookiePolicy';
+import { CookieConsentBanner, AnalyticsDebugger } from '@/components/CookieConsent';
+import { trackPageView } from '@/lib/analytics';
+import AnalyticsPage from '@/admin/Analytics';
+import ReviewsModeration from '@/admin/ReviewsModeration';
 
 const queryClient = new QueryClient();
 
 const AnimatedRoutes = () => {
   const location = useLocation();
+  // track page views when path changes (consent gated inside tracker)
+  if (typeof window !== 'undefined') {
+    trackPageView(location.pathname + location.search);
+  }
   // Build breadcrumb list for JSON-LD (simple split on path segments).
   const segments = location.pathname.split('/').filter(Boolean);
   const breadcrumbItems = [
@@ -127,6 +145,14 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
+          path="/cookie-policy"
+          element={
+            <PageTransition>
+              <CookiePolicy />
+            </PageTransition>
+          }
+        />
+        <Route
           path="/terms"
           element={
             <PageTransition>
@@ -150,6 +176,18 @@ const AnimatedRoutes = () => {
             </PageTransition>
           }
         />
+        {ENABLE_ADMIN && (
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="flowers" element={<FlowersList />} />
+            <Route path="bouquets" element={<BouquetsList />} />
+            <Route path="catalog" element={<CatalogMeta />} />
+            <Route path="branding" element={<BrandingSettings />} />
+            <Route path="flags" element={<FeatureFlagsSettings />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="reviews" element={<ReviewsModeration />} />
+          </Route>
+        )}
         <Route
           path="*"
           element={
@@ -167,6 +205,19 @@ const AnimatedRoutes = () => {
   );
 };
 
+const ChromeWrapper = () => {
+  const location = useLocation();
+  const inAdmin = location.pathname.startsWith('/admin');
+  return (
+    <>
+      {!inAdmin && <Navigation />}
+      <AnimatedRoutes />
+      {!inAdmin && <Footer />}
+      <AdminToggle />
+    </>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -175,9 +226,9 @@ const App = () => (
       <BrowserRouter>
         <AppLoader>
           <SakuraPetals />
-          <Navigation />
-          <AnimatedRoutes />
-          <Footer />
+          <ChromeWrapper />
+          <CookieConsentBanner />
+          <AnalyticsDebugger />
         </AppLoader>
       </BrowserRouter>
     </TooltipProvider>

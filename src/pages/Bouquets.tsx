@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,9 +16,13 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { showPrices } from '@/lib/featureFlags';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { trackEvent } from '@/lib/analytics';
 
 const Bouquets = () => {
   const items = useAppSelector((s) => s.bouquets.items);
+  const location = useLocation();
+  const navigate = useNavigate();
   const categories = useMemo(
     () => Array.from(new Set(items.map((i) => i.category))).sort(),
     [items]
@@ -31,6 +35,31 @@ const Bouquets = () => {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const hasFilters =
     category !== 'all' || (showPrices && maxPrice !== 250) || search !== '' || sort !== 'featured';
+
+  // Sync category from query param (?cat=Romantic)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const catParam = params.get('cat');
+    if (!catParam) return;
+    const match = categories.find(
+      (c) => c.toLowerCase() === decodeURIComponent(catParam).toLowerCase()
+    );
+    if (match) setCategory((prev) => (prev === 'all' ? match : prev));
+    // Exclude `category` to avoid clobbering user reset actions.
+  }, [location.search, categories]);
+
+  // Reflect category in URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (category === 'all') params.delete('cat');
+    else params.set('cat', category);
+    const newSearch = params.toString();
+    const target = newSearch ? `?${newSearch}` : '';
+    if (target !== location.search) {
+      navigate({ pathname: location.pathname, search: target }, { replace: true });
+    }
+    if (category !== 'all') trackEvent('filter_category', { category, type: 'bouquet' });
+  }, [category, location.pathname, location.search, navigate]);
 
   const filtered = useMemo(() => {
     return items
